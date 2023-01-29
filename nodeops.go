@@ -73,7 +73,7 @@ func GetNodes(standNumber int) (error, NodeList) {
 // 	return nodeList
 // }
 
-func returnNodeInfoMap(standNuber int, field string) map[int]string {
+func ReturnNodeInfoMap(standNuber int, field string) map[int]string {
 	nodeList := make(map[int]string, 0)
 	_, result := GetNodes(standNuber)
 	if field == "URL" {
