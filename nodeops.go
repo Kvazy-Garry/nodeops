@@ -1,4 +1,4 @@
-package nodeOps
+package nodeops
 
 import (
 	"bytes"
