@@ -1,22 +1,20 @@
-package nodeops
+package main
 
 import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 )
 
 var (
 	result NodeList
-	nodes  []int //= make([]string, 0)
+	// nodes  []int //= make([]string, 0)
 )
 
 type NodeList []struct {
@@ -33,13 +31,13 @@ func PrettyPrint(i interface{}) string {
 }
 
 // Get nodes ID.
-func GetNodesId(standNumber int) (error, []int) {
+func GetNodes(standNumber int) (error, NodeList) {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	var (
 		n         string = strconv.Itoa(standNumber)
 		urlString string = "https://node-manager-ift-" + n + ".apps.songd.sberdevices.ru/admin/node/list"
 	)
-	nodes = make([]int, 0)
+	// nodes = make([]int, 0)
 	resp, err := http.Get(urlString)
 	if err != nil {
 		return err, nil
@@ -53,32 +51,59 @@ func GetNodesId(standNumber int) (error, []int) {
 		fmt.Println("Can not unmarshal JSON")
 	}
 	PrettyPrint(result)
-	for _, rec := range result {
-		nodes = append(nodes, rec.ID)
-	}
-	return nil, nodes
+
+	return nil, result
 }
 
-func checkIfnodesNeedtoBeAdded(stand int) error {
-	postAttempt := 0
-	for {
-		err, _ := GetNodesId(stand)
-		if err == nil {
-			if _, lenNodeList := GetNodesId(stand); len(lenNodeList) > 0 {
-				fmt.Println("Ноды уже существуют")
-				os.Exit(0)
+// func returnIDlist(standNuber int) []string{
+// 	nodesId:=make([]string,0)
+// 	_,result:= GetNodes(standNuber)
+// 	for _,rec:=range result{
+// 		nodesId = append(nodesId, string(rec.ID))
+// 	}
+// 	return nodesId
+// }
+
+// func returnNodeList(standNuber int) []string{
+// 	nodeList:=make([]string,0)
+// 	_,result:= GetNodes(standNuber)
+// 	for _,rec:=range result{
+// 		nodeList = append(nodeList, string(rec.ID))
+// 	}
+// 	return nodeList
+// }
+
+func returnNodeInfoMap(standNuber int, field string) map[int]string {
+	nodeList := make(map[int]string, 0)
+	_, result := GetNodes(standNuber)
+	if field == "URL" {
+		for _, rec := range result {
+			nodeList[rec.ID] = rec.URL
+		}
+	} else if field == "ID" {
+		for _, rec := range result {
+			nodeList[rec.ID] = strconv.Itoa(rec.ID)
+		}
+	} else if field == "Active" {
+		for _, rec := range result {
+			if rec.Active {
+				nodeList[rec.ID] = "true"
+			} else {
+				nodeList[rec.ID] = "false"
 			}
-			break
-		} else {
-			postAttempt++
-			duration := time.Duration(5) * time.Second
-			time.Sleep(duration * time.Duration(postAttempt))
 		}
-		if postAttempt > 5 {
-			return err
+	} else if field == "NodeTag" {
+		for _, rec := range result {
+			nodeList[rec.ID] = rec.NodeTag
 		}
+	} else if field == "MetricUrl" {
+		for _, rec := range result {
+			nodeList[rec.ID] = rec.MetricUrl
+		}
+	} else {
+		log.Fatal("No such field in NodeManager DB")
 	}
-	return nil
+	return nodeList
 }
 
 func metricUrl(standNumber string) string {
@@ -147,15 +172,9 @@ func AddNodeToStand(stand string) error {
 	return nil
 }
 func main() {
-	standPtr := flag.Int("standNumber", 100, "Stand number")
-	flag.Parse()
-	if err := checkIfnodesNeedtoBeAdded(*standPtr); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := AddNodeToStand(strconv.Itoa(*standPtr)); err != nil {
-		log.Fatal(err)
-	} else {
-		os.Exit(0)
-	}
+	fmt.Println(returnNodeInfoMap(3, "ID"))
+	fmt.Println(returnNodeInfoMap(3, "URL"))
+	fmt.Println(returnNodeInfoMap(3, "Active"))
+	fmt.Println(returnNodeInfoMap(3, "NodeTag"))
+	fmt.Println(returnNodeInfoMap(3, "MetricUrl"))
 }
