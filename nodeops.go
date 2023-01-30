@@ -172,9 +172,9 @@ func AddNodeToStand(stand string) error {
 	return nil
 }
 func main() {
-	fmt.Println(returnNodeInfoMap(3, "ID"))
-	fmt.Println(returnNodeInfoMap(3, "URL"))
-	fmt.Println(returnNodeInfoMap(3, "Active"))
-	fmt.Println(returnNodeInfoMap(3, "NodeTag"))
-	fmt.Println(returnNodeInfoMap(3, "MetricUrl"))
+	fmt.Println(ReturnNodeInfoMap(3, "ID"))
+	fmt.Println(ReturnNodeInfoMap(3, "URL"))
+	fmt.Println(ReturnNodeInfoMap(3, "Active"))
+	fmt.Println(ReturnNodeInfoMap(3, "NodeTag"))
+	fmt.Println(ReturnNodeInfoMap(3, "MetricUrl"))
 }
